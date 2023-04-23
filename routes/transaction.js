@@ -5,7 +5,7 @@ const express = require("express");
 const router = express.Router();
 const TransactionItem = require("../models/TransactionItem");
 const User = require("../models/User");
-
+const mongoose = require("mongoose");
 /*
 this is a very simple server which maintains a key/value
 store using an object where the keys and values are lists of strings
@@ -93,63 +93,20 @@ router.post(
   }
 );
 
-// router.get("/todo/byUser", isLoggedIn, async (req, res, next) => {
-//   let results = await ToDoItem.aggregate([
-//     {
-//       $group: {
-//         _id: "$userId",
-//         total: { $count: {} },
-//       },
-//     },
-//     { $sort: { total: -1 } },
-//   ]);
-//   //replace id with name
-//   results = await User.populate(results, {
-//     path: "_id",
-//     select: ["username", "age"],
-//   });
-
-//   //res.json(results)
-//   res.render("summarizeByUser", { results });
-// });
-
-// //count completed todos
-// router.get("/todo/byComplete", isLoggedIn, async (req, res, next) => {
-//   let results = await ToDoItem.aggregate([
-//     { $match: { completed: true } },
-//     {
-//       $group: {
-//         _id: "$userId",
-//         total: { $count: {} },
-//       },
-//     },
-//     { $sort: { total: -1 } },
-//   ]);
-//   //replace id with name
-//   results = await User.populate(results, {
-//     path: "_id",
-//     select: ["username", "age"],
-//   });
-
-//   //res.json(results)
-//   res.render("summarizeByUser", { results });
-// });
-
-// //count the number of times each item appears on some users
-// router.get("/todo/byDesicription", isLoggedIn, async (req, res, next) => {
-//   let results = await ToDoItem.aggregate([
-//     { $match: { completed: true } },
-//     {
-//       $group: {
-//         _id: "$item",
-//         total: { $count: {} },
-//       },
-//     },
-//     { $sort: { total: -1 } },
-//   ]);
-
-//   res.json(results)
-//   //res.render("summarizeByUser", { results });
-// });
+router.get("/transaction/byCategory", isLoggedIn, async (req, res, next) => {
+  let id = req.user._id;
+  let results = await TransactionItem.aggregate([
+    { $match: { userId: new mongoose.Types.ObjectId(id) } },
+    {
+      $group: {
+        _id: "$category",
+        total: { $sum: "$amount" },
+      },
+    },
+    { $sort: { total: -1 } },
+  ]);
+  //res.json(results);
+  res.render("transactionByCategory", { results });
+});
 
 module.exports = router;

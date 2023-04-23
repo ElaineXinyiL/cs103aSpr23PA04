@@ -21,11 +21,33 @@ isLoggedIn = (req, res, next) => {
 };
 
 // get the value associated to the key
-router.get('/transaction/',
-  isLoggedIn,
-  async (req, res, next) => {
-      res.locals.items = await TransactionItem.find({userId:req.user._id}).sort({date:1});
-      res.render('transactionList');
+router.get("/transaction/", isLoggedIn, async (req, res, next) => {
+  const sortBy = req.query.sortBy;
+  let items = [];
+  if (sortBy == "category") {
+    items = await TransactionItem.find({ userId: req.user._id }).sort({
+      category: 1,
+      date: 1,
+      amount: 1,
+    });
+  } else if (sortBy == "amount") {
+    items = await TransactionItem.find({ userId: req.user._id }).sort({
+      amount: 1,
+    });
+  } else if (sortBy == "description") {
+    items = await TransactionItem.find({ userId: req.user._id }).sort({
+      description: 1,
+    });
+  } else if (sortBy == "date") {
+    items = await TransactionItem.find({ userId: req.user._id }).sort({
+      date: 1,
+    });
+  } else {
+    items = await TransactionItem.find({ userId: req.user._id }).sort({
+      date: 1,
+    });
+  }
+  res.render("transactionList", { items, sortBy });
 });
 
 /* add the value in the body to the list associated to the key */
@@ -41,27 +63,35 @@ router.post("/transaction", isLoggedIn, async (req, res, next) => {
   res.redirect("/transaction");
 });
 
-router.get("/transaction/remove/:itemId", isLoggedIn, async (req, res, next) => {
-  console.log("inside /transaction/remove/:itemId");
-  await TransactionItem.deleteOne({ _id: req.params.itemId });
-  res.redirect("/transaction");
-});
+router.get(
+  "/transaction/remove/:itemId",
+  isLoggedIn,
+  async (req, res, next) => {
+    console.log("inside /transaction/remove/:itemId");
+    await TransactionItem.deleteOne({ _id: req.params.itemId });
+    res.redirect("/transaction");
+  }
+);
 
 router.get("/transaction/edit/:itemId", isLoggedIn, async (req, res, next) => {
   console.log("inside /transaction/edit/:itemId");
   const item = await TransactionItem.findById(req.params.itemId);
-  res.render('transactionEdit', { item });
+  res.render("transactionEdit", { item });
 });
 
-router.post("/transaction/updateTransactionItem", isLoggedIn, async (req, res, next) => {
-  const { itemId, description, amount, category, date } = req.body;
-  console.log("inside /transaction/updateTransactionItem");
-  await TransactionItem.findOneAndUpdate(
-    { _id: itemId },
-    { $set: { description, amount, category, date } }
-  );
-  res.redirect("/transaction");
-});
+router.post(
+  "/transaction/updateTransactionItem",
+  isLoggedIn,
+  async (req, res, next) => {
+    const { itemId, description, amount, category, date } = req.body;
+    console.log("inside /transaction/updateTransactionItem");
+    await TransactionItem.findOneAndUpdate(
+      { _id: itemId },
+      { $set: { description, amount, category, date } }
+    );
+    res.redirect("/transaction");
+  }
+);
 
 // router.get("/todo/byUser", isLoggedIn, async (req, res, next) => {
 //   let results = await ToDoItem.aggregate([
